@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IA na Prática — Crie e Venda Produtos Digitais do Zero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#0A0F1E;
+    --bg-1:#0F1830;
+    --bg-2:#141F3D;
+    --panel:#111A33;
+    --line: rgba(148,168,214,0.14);
+    --text-0:#EEF2FC;
+    --text-1:#B7C1DE;
+    --text-2:#7C87A8;
+    --gold:#F4B740;
+    --gold-soft: rgba(244,183,64,0.12);
+    --cyan:#3FDFC8;
+    --cyan-soft: rgba(63,223,200,0.12);
+    --danger:#FF6B6B;
+    --radius:18px;
+    --maxw:1120px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg-0);
+    color:var(--text-0);
+    font-family:'Inter', sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,h4{ font-family:'Sora', sans-serif; letter-spacing:-0.01em; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  img{max-width:100%; display:block;}
+  a{color:inherit; text-decoration:none;}
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 24px; }
+  section{ position:relative; }
+
+  /* ---------- Background atmosphere ---------- */
+  .bg-grid{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:64px 64px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 10%, transparent 75%);
+    opacity:.5;
+  }
+  .glow{
+    position:fixed; z-index:0; pointer-events:none; border-radius:50%;
+    filter:blur(110px); opacity:.35;
+  }
+  .glow-1{ width:520px; height:520px; background:var(--cyan); top:-180px; left:-160px; }
+  .glow-2{ width:600px; height:600px; background:var(--gold); bottom:-260px; right:-200px; opacity:.18; }
+
+  /* ---------- Reveal animation ---------- */
+  .reveal{ opacity:0; transform:translateY(28px); transition:opacity .8s ease, transform .8s ease; }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+
+  /* ---------- Top urgency bar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    background:linear-gradient(90deg, #1a1030, #2b1200 60%, #1a1030);
+    border-bottom:1px solid var(--line);
+    text-align:center;
+    padding:10px 16px;
+    font-size:13px;
+    color:#FFE7B3;
+  }
+  .topbar b{ color:var(--gold); }
+  #topbar-timer{ font-family:'JetBrains Mono',monospace; font-weight:600; color:#fff; }
+
+  /* ---------- Nav ---------- */
+  header.nav{
+    position:sticky; top:34px; z-index:49;
+    backdrop-filter: blur(14px);
+    background:rgba(10,15,30,0.72);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{ display:flex; align-items:center; justify-content:space-between; padding:14px 24px; max-width:var(--maxw); margin:0 auto; }
+  .brand{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:15px; }
+  .brand .dot{ width:9px; height:9px; border-radius:50%; background:var(--cyan); box-shadow:0 0 12px var(--cyan); }
+  .nav-cta{
+    background:var(--gold); color:#231402; font-weight:700; font-size:13px;
+    padding:9px 18px; border-radius:999px; letter-spacing:.01em;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{ padding:88px 0 70px; }
+  .hero-grid{ display:grid; grid-template-columns:1.05fr .95fr; gap:56px; align-items:center; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--cyan);
+    background:var(--cyan-soft); border:1px solid rgba(63,223,200,.3);
+    padding:6px 14px; border-radius:999px; margin-bottom:22px;
+  }
+  .eyebrow .pulse{ width:7px; height:7px; border-radius:50%; background:var(--cyan); animation:pulse 1.6s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.4; transform:scale(1.4);} }
+
+  .hero h1{ font-size:clamp(34px, 4.6vw, 54px); line-height:1.08; font-weight:800; margin-bottom:20px; }
+  .hero h1 span{ color:var(--gold); }
+  .hero p.lead{ font-size:17.5px; color:var(--text-1); max-width:52ch; margin-bottom:30px; }
+
+  .price-block{
+    display:flex; align-items:flex-end; gap:18px; margin-bottom:22px; flex-wrap:wrap;
+  }
+  .price-old{ font-family:'JetBrains Mono',monospace; color:var(--text-2); font-size:20px; position:relative; }
+  .price-old::after{
+    content:""; position:absolute; left:-4px; right:-4px; top:50%; height:2px;
+    background:var(--danger); transform:rotate(-6deg);
+  }
+  .price-new{ font-size:52px; font-weight:800; font-family:'Sora',sans-serif; color:var(--text-0); }
+  .price-new sup{ font-size:22px; color:var(--gold); }
+  .price-tag{
+    background:var(--gold-soft); color:var(--gold); border:1px solid rgba(244,183,64,.35);
+    font-size:12.5px; font-weight:700; padding:5px 10px; border-radius:8px; align-self:center;
+  }
+
+  .cta-btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:10px;
+    background:linear-gradient(135deg, var(--gold), #ffd074);
+    color:#231402; font-weight:800; font-size:16.5px;
+    padding:17px 30px; border-radius:14px; width:100%; max-width:420px;
+    box-shadow:0 14px 34px -10px rgba(244,183,64,.55);
+    transition:transform .25s ease, box-shadow .25s ease;
+    border:none; cursor:pointer;
+    animation:breathe 2.6s ease-in-out infinite;
+  }
+  .cta-btn:hover{ transform:translateY(-3px); box-shadow:0 18px 40px -8px rgba(244,183,64,.7); }
+  @keyframes breathe{ 0%,100%{box-shadow:0 14px 34px -10px rgba(244,183,64,.55);} 50%{box-shadow:0 14px 44px -6px rgba(244,183,64,.85);} }
+  .cta-sub{ font-size:12.5px; color:var(--text-2); margin-top:12px; display:flex; gap:16px; flex-wrap:wrap; }
+  .cta-sub span{ display:inline-flex; align-items:center; gap:6px; }
+
+  /* ---------- Terminal (signature element) ---------- */
+  .terminal{
+    background:linear-gradient(180deg, var(--panel), #0C1428);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset;
+    overflow:hidden;
+  }
+  .terminal-head{
+    display:flex; align-items:center; gap:8px; padding:13px 16px;
+    border-bottom:1px solid var(--line); background:rgba(255,255,255,.02);
+  }
+  .terminal-head .d{ width:11px; height:11px; border-radius:50%; }
+  .d.r{background:#FF5F57;} .d.y{background:#FEBC2E;} .d.g{background:#28C840;}
+  .terminal-head .title{ margin-left:8px; font-size:12px; color:var(--text-2); font-family:'JetBrains Mono',monospace; }
+  .terminal-body{ padding:22px 20px 26px; font-family:'JetBrains Mono',monospace; font-size:13.4px; min-height:290px; }
+  .terminal-body .line{ display:flex; gap:10px; margin-bottom:10px; opacity:0; animation:fadein .4s forwards; }
+  .terminal-body .prompt{ color:var(--cyan); flex-shrink:0; }
+  .terminal-body .out{ color:var(--text-1); }
+  .terminal-body .ok{ color:var(--cyan); }
+  .terminal-body .price-line{ color:var(--gold); font-weight:600; }
+  @keyframes fadein{ to{opacity:1;} }
+  .cursor{ display:inline-block; width:7px; height:14px; background:var(--cyan); margin-left:2px; animation:blink 1s step-end infinite; vertical-align:middle; }
+  @keyframes blink{ 50%{opacity:0;} }
+
+  /* ---------- Section shells ---------- */
+  .eyebrow-center{ text-align:center; margin:0 auto 16px; }
+  .section-title{ text-align:center; max-width:760px; margin:0 auto 54px; }
+  .section-title h2{ font-size:clamp(26px,3.4vw,38px); font-weight:800; margin-bottom:14px; }
+  .section-title p{ color:var(--text-1); font-size:16px; }
+  .section-pad{ padding:96px 0; }
+  .divider{ height:1px; background:linear-gradient(90deg, transparent, var(--line), transparent); }
+
+  /* ---------- Problem ---------- */
+  .problem-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  .problem-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:26px;
+  }
+  .problem-card .x{
+    width:34px; height:34px; border-radius:10px; background:rgba(255,107,107,.12);
+    color:var(--danger); display:flex; align-items:center; justify-content:center; font-weight:700; margin-bottom:16px;
+  }
+  .problem-card h4{ font-size:16.5px; margin-bottom:8px; }
+  .problem-card p{ color:var(--text-2); font-size:14.5px; }
+
+  /* ---------- Chapters / roadmap ---------- */
+  .chapters{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .chapter-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px;
+    transition:border-color .25s ease, transform .25s ease, background .25s ease;
+  }
+  .chapter-card:hover{ border-color:rgba(63,223,200,.4); transform:translateY(-4px); background:#101B36; }
+  .chapter-card .n{ font-family:'JetBrains Mono',monospace; color:var(--cyan); font-size:12.5px; margin-bottom:10px; display:block; }
+  .chapter-card h4{ font-size:15px; font-weight:600; line-height:1.35; }
+
+  /* ---------- Stack / value ---------- */
+  .stack{
+    background:linear-gradient(180deg, var(--panel), #0C1428);
+    border:1px solid var(--line); border-radius:24px; padding:44px;
+    max-width:680px; margin:0 auto;
+  }
+  .stack-row{ display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px dashed var(--line); font-size:15px; }
+  .stack-row:last-of-type{ border-bottom:none; }
+  .stack-row .item{ color:var(--text-1); display:flex; align-items:center; gap:10px; }
+  .stack-row .item .chk{ color:var(--cyan); }
+  .stack-row .val{ font-family:'JetBrains Mono',monospace; color:var(--text-2); }
+  .stack-total{ display:flex; justify-content:space-between; align-items:center; margin-top:22px; padding-top:22px; border-top:1px solid var(--line); }
+  .stack-total .lbl{ font-size:14px; color:var(--text-2); }
+  .stack-total .old{ font-family:'JetBrains Mono',monospace; color:var(--text-2); text-decoration:line-through; text-decoration-color:var(--danger); font-size:18px; }
+  .stack-total .new{ font-size:34px; font-weight:800; color:var(--gold); font-family:'Sora',sans-serif; margin-top:4px; }
+
+  /* ---------- Benefits ---------- */
+  .benefits{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
+  .benefit{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:24px; }
+  .benefit .ico{ width:40px; height:40px; border-radius:11px; background:var(--gold-soft); color:var(--gold); display:flex; align-items:center; justify-content:center; margin-bottom:14px; font-size:18px; }
+  .benefit h4{ font-size:15px; margin-bottom:6px; }
+  .benefit p{ font-size:13.5px; color:var(--text-2); }
+
+  /* ---------- Testimonials ---------- */
+  .testi-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  .testi{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:24px; }
+  .stars{ color:var(--gold); font-size:14px; margin-bottom:12px; letter-spacing:2px; }
+  .testi p{ font-size:14.5px; color:var(--text-1); margin-bottom:18px; }
+  .testi-who{ display:flex; align-items:center; gap:10px; }
+  .avatar{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#0A0F1E; }
+  .testi-who .name{ font-size:13.5px; font-weight:600; }
+  .testi-who .role{ font-size:12px; color:var(--text-2); }
+  .note{ text-align:center; font-size:12.5px; color:var(--text-2); margin-top:20px; }
+
+  /* ---------- Guarantee ---------- */
+  .guarantee{
+    display:grid; grid-template-columns:auto 1fr; gap:34px; align-items:center;
+    background:linear-gradient(135deg, rgba(63,223,200,.08), rgba(244,183,64,.06));
+    border:1px solid rgba(63,223,200,.25); border-radius:24px; padding:40px;
+  }
+  .seal{
+    width:110px; height:110px; border-radius:50%; flex-shrink:0;
+    background:radial-gradient(circle at 35% 30%, #FFE7A6, var(--gold));
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    color:#231402; font-family:'Sora',sans-serif; font-weight:800; font-size:12px; line-height:1.2; padding:10px;
+    box-shadow:0 0 0 6px rgba(244,183,64,.12);
+  }
+  .guarantee h3{ font-size:22px; margin-bottom:10px; }
+  .guarantee p{ color:var(--text-1); font-size:15px; }
+
+  /* ---------- FAQ ---------- */
+  .faq-item{ border-bottom:1px solid var(--line); padding:20px 0; cursor:pointer; }
+  .faq-q{ display:flex; justify-content:space-between; align-items:center; font-weight:600; font-size:15.5px; }
+  .faq-q .plus{ color:var(--cyan); font-family:'JetBrains Mono',monospace; transition:transform .25s ease; }
+  .faq-item.open .plus{ transform:rotate(45deg); }
+  .faq-a{ max-height:0; overflow:hidden; transition:max-height .35s ease; color:var(--text-1); font-size:14.5px; }
+  .faq-item.open .faq-a{ max-height:200px; padding-top:12px; }
+
+  /* ---------- Final CTA ---------- */
+  .final-cta{
+    text-align:center; background:linear-gradient(180deg, var(--panel), #0C1428);
+    border:1px solid var(--line); border-radius:28px; padding:64px 30px;
+  }
+  .final-cta h2{ font-size:clamp(26px,3.6vw,40px); margin-bottom:16px; }
+  .final-cta p{ color:var(--text-1); max-width:52ch; margin:0 auto 30px; }
+  .timer-row{ display:flex; justify-content:center; gap:14px; margin:30px auto 34px; }
+  .timer-box{ background:var(--bg-1); border:1px solid var(--line); border-radius:12px; padding:14px 16px; min-width:74px; }
+  .timer-box .num{ font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:700; color:var(--gold); }
+  .timer-box .lbl{ font-size:10.5px; color:var(--text-2); letter-spacing:.08em; text-transform:uppercase; margin-top:4px; }
+
+  /* ---------- Sticky mobile bar ---------- */
+  .sticky-cta{
+    position:fixed; left:0; right:0; bottom:0; z-index:60;
+    background:rgba(10,15,30,.92); backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);
+    padding:12px 16px; display:none; align-items:center; justify-content:space-between; gap:14px;
+    transform:translateY(110%); transition:transform .35s ease;
+  }
+  .sticky-cta.show{ transform:translateY(0); }
+  .sticky-cta .p{ font-family:'Sora',sans-serif; font-weight:800; font-size:19px; }
+  .sticky-cta .p small{ color:var(--text-2); text-decoration:line-through; font-family:'JetBrains Mono',monospace; font-size:12px; display:block; }
+  .sticky-cta a{ background:var(--gold); color:#231402; font-weight:800; padding:12px 20px; border-radius:12px; font-size:14px; white-space:nowrap; }
+
+  footer{ text-align:center; padding:50px 24px 40px; color:var(--text-2); font-size:12.5px; }
+  footer .fb{ margin-bottom:10px; font-weight:700; color:var(--text-1); }
+
+  @media(max-width:920px){
+    .hero-grid{ grid-template-columns:1fr; }
+    .problem-grid, .benefits, .testi-grid{ grid-template-columns:repeat(2,1fr); }
+    .chapters{ grid-template-columns:repeat(2,1fr); }
+    .guarantee{ grid-template-columns:1fr; text-align:center; }
+    .guarantee .seal{ margin:0 auto; }
+    .sticky-cta{ display:flex; }
+  }
+  @media(max-width:600px){
+    .problem-grid, .benefits, .testi-grid, .chapters{ grid-template-columns:1fr; }
+    .price-new{ font-size:42px; }
+    .section-pad{ padding:70px 0; }
+    .timer-row{ gap:8px; }
+    .timer-box{ min-width:60px; padding:10px 8px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+
+  :focus-visible{ outline:2px solid var(--cyan); outline-offset:3px; }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="glow glow-1"></div>
+<div class="glow glow-2"></div>
+
+<!-- Top urgency bar -->
+<div class="topbar">
+  🔥 Oferta de lançamento termina em <span id="topbar-timer" class="mono">24:00:00</span> — depois o preço volta para <b>$108,54</b>
+</div>
+
+<!-- Nav -->
+<header class="nav">
+  <div class="nav-inner">
+    <div class="brand"><span class="dot"></span> IA na Prática</div>
+    <a href="https://pay.hotmart.com/Y106729985M" class="nav-cta">Garantir por $32,67</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow"><span class="pulse"></span> E-BOOK + GUIA PRÁTICO · 52 PÁGINAS</div>
+      <h1>Crie e venda <span>produtos digitais</span> do zero usando Inteligência Artificial</h1>
+      <p class="lead">O passo a passo completo — do nicho ao primeiro pagamento — para transformar ideias em e-books, cursos e templates que vendem todos os dias, mesmo sem experiência em design, escrita ou tecnologia.</p>
+
+      <div class="price-block">
+        <div class="price-old mono">$108,54</div>
+        <div class="price-new">$32,67<sup>USD</sup></div>
+        <div class="price-tag">-70% hoje</div>
+      </div>
+
+      <a href="https://pay.hotmart.com/Y106729985M" class="cta-btn">Quero criar meu produto agora →</a>
+      <div class="cta-sub">
+        <span>🔒 Pagamento seguro</span>
+        <span>⚡ Acesso imediato</span>
+        <span>↩️ Garantia de 7 dias</span>
+      </div>
+    </div>
+
+    <div class="terminal reveal">
+      <div class="terminal-head">
+        <div class="d r"></div><div class="d y"></div><div class="d g"></div>
+        <div class="title">gerador-de-produtos.ai</div>
+      </div>
+      <div class="terminal-body" id="terminal-body"></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider wrap"></div>
+
+<!-- PROBLEM -->
+<section class="section-pad">
+  <div class="wrap">
+    <div class="section-title reveal">
+      <div class="eyebrow eyebrow-center" style="display:inline-flex;">ANTES DE COMEÇAR</div>
+      <h2>Você já tentou começar e travou em algum destes pontos?</h2>
+      <p>É assim para quase todo mundo que tenta empreender online sozinho — o problema nunca foi falta de esforço.</p>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card reveal">
+        <div class="x">✕</div>
+        <h4>Não sabe por onde começar</h4>
+        <p>Dezenas de ideias na cabeça, nenhuma estrutura clara para sair do zero e lançar algo real.</p>
+      </div>
+      <div class="problem-card reveal">
+        <div class="x">✕</div>
+        <h4>Acha que precisa saber design ou programar</h4>
+        <p>A crença de que é preciso ser especialista técnico impede o primeiro passo — e isso não é mais verdade.</p>
+      </div>
+      <div class="problem-card reveal">
+        <div class="x">✕</div>
+        <h4>Cria algo que ninguém compra</h4>
+        <p>Meses de trabalho em um produto sem validar se existe gente disposta a pagar por ele.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider wrap"></div>
+
+<!-- CHAPTERS / WHAT'S INSIDE -->
+<section class="section-pad">
+  <div class="wrap">
+    <div class="section-title reveal">
+      <div class="eyebrow eyebrow-center" style="display:inline-flex;">DENTRO DO E-BOOK</div>
+      <h2>18 capítulos, do primeiro nicho ao seu negócio escalando</h2>
+      <p>Um roteiro sequencial — cada capítulo resolve uma etapa real do processo de criar e vender.</p>
+    </div>
+    <div class="chapters">
+      <div class="chapter-card reveal"><span class="n">01–02</span><h4>O que são produtos digitais e o poder da IA na criação</h4></div>
+      <div class="chapter-card reveal"><span class="n">03–04</span><h4>Como escolher um nicho lucrativo e validar ideias que vendem</h4></div>
+      <div class="chapter-card reveal"><span class="n">05–06</span><h4>Planejamento do produto e criação de conteúdo com IA</h4></div>
+      <div class="chapter-card reveal"><span class="n">07</span><h4>Criando capas e imagens profissionais com Inteligência Artificial</h4></div>
+      <div class="chapter-card reveal"><span class="n">09</span><h4>Como definir o preço certo do seu produto</h4></div>
+      <div class="chapter-card reveal"><span class="n">10–11</span><h4>Onde vender e como montar uma página que convence</h4></div>
+      <div class="chapter-card reveal"><span class="n">12–13</span><h4>Marketing digital diário e construção de marca pessoal</h4></div>
+      <div class="chapter-card reveal"><span class="n">14</span><h4>Os erros que fazem 90% dos iniciantes desistirem</h4></div>
+      <div class="chapter-card reveal"><span class="n">15–16</span><h4>Como escalar o negócio e economizar horas com IA</h4></div>
+      <div class="chapter-card reveal"><span class="n">17</span><h4>Uso ético e responsável da Inteligência Artificial</h4></div>
+      <div class="chapter-card reveal"><span class="n">18</span><h4>Plano de ação de 30 dias, semana a semana</h4></div>
+      <div class="chapter-card reveal" style="background:var(--gold-soft); border-color:rgba(244,183,64,.35);"><span class="n" style="color:var(--gold);">BÔNUS</span><h4>Perguntas de validação e faixas de preço prontas para usar</h4></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider wrap"></div>
+
+<!-- BENEFITS -->
+<section class="section-pad">
+  <div class="wrap">
+    <div class="section-title reveal">
+      <div class="eyebrow eyebrow-center" style="display:inline-flex;">PARA QUEM É</div>
+      <h2>Feito para quem quer resultado prático, não teoria</h2>
+    </div>
+    <div class="benefits">
+      <div class="benefit reveal"><div class="ico">🎯</div><h4>Iniciantes completos</h4><p>Nenhuma experiência prévia em criação de produtos ou marketing é necessária.</p></div>
+      <div class="benefit reveal"><div class="ico">⏱️</div><h4>Quem tem pouco tempo</h4><p>Um plano de 30 dias que cabe em rotinas de quem trabalha ou estuda.</p></div>
+      <div class="benefit reveal"><div class="ico">💡</div><h4>Quem já tentou e travou</h4><p>Estrutura clara para quem tem ideias soltas mas nunca lançou nada.</p></div>
+      <div class="benefit reveal"><div class="ico">🤖</div><h4>Curiosos por IA</h4><p>Aprenda a usar ferramentas de Inteligência Artificial na prática, com exemplos reais.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider wrap"></div>
+
+<!-- VALUE STACK / OFFER -->
+<section class="section-pad" id="oferta">
+  <div class="wrap">
+    <div class="section-title reveal">
+      <div class="eyebrow eyebrow-center" style="display:inline-flex;">OFERTA DE LANÇAMENTO</div>
+      <h2>Tudo que você recebe hoje</h2>
+    </div>
+
+    <div class="stack reveal">
+      <div class="stack-row"><div class="item"><span class="chk">✓</span> E-book completo "IA na Prática" (52 páginas)</div><div class="val">$59,00</div></div>
+      <div class="stack-row"><div class="item"><span class="chk">✓</span> Plano de ação de 30 dias, pronto para seguir</div><div class="val">$19,90</div></div>
+      <div class="stack-row"><div class="item"><span class="chk">✓</span> Checklist de validação de ideias</div><div class="val">$12,90</div></div>
+      <div class="stack-row"><div class="item"><span class="chk">✓</span> Modelos de prompts de IA para conteúdo e imagens</div><div class="val">$16,74</div></div>
+      <div class="stack-total">
+        <div>
+          <div class="lbl">Valor total</div>
+          <div class="old">$108,54</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="lbl">Hoje por</div>
+          <div class="new">$32,67</div>
+        </div>
+      </div>
+      <a href="https://pay.hotmart.com/Y106729985M" class="cta-btn" style="margin-top:26px;">Garantir minha vaga com desconto →</a>
+      <div class="cta-sub" style="justify-content:center;">
+        <span>🔒 Compra 100% segura</span>
+        <span>📩 Entrega automática por e-mail</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider wrap"></div>
+
+<!-- TESTIMONIALS -->
+<section class="section-pad">
+  <div class="wrap">
+    <div class="section-title reveal">
+      <div class="eyebrow eyebrow-center" style="display:inline-flex;">RESULTADOS</div>
+      <h2>Quem aplicou, saiu do zero</h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi reveal">
+        <div class="stars">★★★★★</div>
+        <p>"Eu travava toda vez que tentava começar. O plano de 30 dias foi o que finalmente me fez publicar meu primeiro e-book."</p>
+        <div class="testi-who">
+          <div class="avatar" style="background:var(--cyan);">M</div>
+          <div><div class="name">Mariana C.</div><div class="role">Criadora de conteúdo</div></div>
+        </div>
+      </div>
+      <div class="testi reveal">
+        <div class="stars">★★★★★</div>
+        <p>"Não sabia nada de design. Os capítulos sobre imagens com IA me economizaram o que seria semanas de trabalho."</p>
+        <div class="testi-who">
+          <div class="avatar" style="background:var(--gold);">R</div>
+          <div><div class="name">Rafael T.</div><div class="role">Professor autônomo</div></div>
+        </div>
+      </div>
+      <div class="testi reveal">
+        <div class="stars">★★★★★</div>
+        <p>"O capítulo de precificação sozinho já valeu o investimento. Parei de vender barato demais."</p>
+        <div class="testi-who">
+          <div class="avatar" style="background:#8B7CF6;">L</div>
+          <div><div class="name">Luiza A.</div><div class="role">Consultora financeira</div></div>
+        </div>
+      </div>
+    </div>
+    <p class="note">Depoimentos ilustrativos de leitores que aplicaram os métodos do e-book.</p>
+  </div>
+</section>
+
+<div class="divider wrap"></div>
+
+<!-- GUARANTEE -->
+<section class="section-pad">
+  <div class="wrap">
+    <div class="guarantee reveal">
+      <div class="seal">GARANTIA<br>7 DIAS</div>
+      <div>
+        <h3>Risco zero. A decisão é toda sua.</h3>
+        <p>Leia, aplique e explore o material por 7 dias. Se sentir que não é para você, é só pedir reembolso — sem perguntas, sem burocracia.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider wrap"></div>
+
+<!-- FAQ -->
+<section class="section-pad">
+  <div class="wrap" style="max-width:760px;">
+    <div class="section-title reveal">
+      <div class="eyebrow eyebrow-center" style="display:inline-flex;">DÚVIDAS FREQUENTES</div>
+      <h2>Perguntas antes de começar</h2>
+    </div>
+    <div class="faq">
+      <div class="faq-item reveal">
+        <div class="faq-q">Preciso saber usar ferramentas de IA? <span class="plus">+</span></div>
+        <div class="faq-a">Não. O e-book ensina exatamente como usar cada ferramenta, com exemplos de comandos prontos para copiar e adaptar.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q">Funciona para quem nunca vendeu nada online? <span class="plus">+</span></div>
+        <div class="faq-a">Sim. O conteúdo foi estruturado para quem está começando do absoluto zero, sem experiência prévia com produtos digitais.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q">Como recebo o material? <span class="plus">+</span></div>
+        <div class="faq-a">O acesso é liberado automaticamente por e-mail em poucos minutos após a confirmação do pagamento.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q">E se eu não gostar? <span class="plus">+</span></div>
+        <div class="faq-a">Você tem 7 dias de garantia incondicional. Basta solicitar o reembolso dentro do prazo.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider wrap"></div>
+
+<!-- FINAL CTA -->
+<section class="section-pad">
+  <div class="wrap">
+    <div class="final-cta reveal">
+      <div class="eyebrow eyebrow-center" style="display:inline-flex;">ÚLTIMA CHAMADA</div>
+      <h2>O melhor momento para começar é agora</h2>
+      <p>A cada dia adiado é mais uma ideia que fica só na imaginação. Comece hoje com o preço de lançamento.</p>
+
+      <div class="timer-row">
+        <div class="timer-box"><div class="num" id="t-h">24</div><div class="lbl">Horas</div></div>
+        <div class="timer-box"><div class="num" id="t-m">00</div><div class="lbl">Min</div></div>
+        <div class="timer-box"><div class="num" id="t-s">00</div><div class="lbl">Seg</div></div>
+      </div>
+
+      <div class="price-block" style="justify-content:center;">
+        <div class="price-old mono">$108,54</div>
+        <div class="price-new">$32,67</div>
+      </div>
+
+      <a href="https://pay.hotmart.com/Y106729985M" class="cta-btn" style="margin:8px auto 0;">Quero meu acesso agora →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="fb">IA na Prática</div>
+  <p>Produto digital de entrega imediata. Compra protegida e garantia de 7 dias.</p>
+</footer>
+
+<!-- Sticky mobile CTA -->
+<div class="sticky-cta" id="sticky-cta">
+  <div class="p">$32,67 <small>$108,54</small></div>
+  <a href="https://pay.hotmart.com/Y106729985M">Comprar agora</a>
+</div>
+
+<script>
+  // Reveal on scroll
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, {threshold:0.15});
+  revealEls.forEach(el=>io.observe(el));
+
+  // FAQ toggle
+  document.querySelectorAll('.faq-item').forEach(item=>{
+    item.addEventListener('click', ()=>{
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+      if(!wasOpen) item.classList.add('open');
+    });
+  });
+
+  // Sticky mobile bar
+  const stickyCta = document.getElementById('sticky-cta');
+  const heroSection = document.querySelector('.hero');
+  window.addEventListener('scroll', ()=>{
+    if(window.scrollY > heroSection.offsetHeight){
+      stickyCta.classList.add('show');
+    } else {
+      stickyCta.classList.remove('show');
+    }
+  });
+
+  // Countdown timers (24h from first load, persisted in memory of this session)
+  const DURATION = 24*60*60*1000;
+  const deadline = Date.now() + DURATION;
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function updateTimers(){
+    const remaining = Math.max(0, deadline - Date.now());
+    const h = Math.floor(remaining/3600000);
+    const m = Math.floor((remaining%3600000)/60000);
+    const s = Math.floor((remaining%60000)/1000);
+
+    const topbarTimer = document.getElementById('topbar-timer');
+    if(topbarTimer) topbarTimer.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+
+    const th = document.getElementById('t-h');
+    const tm = document.getElementById('t-m');
+    const ts = document.getElementById('t-s');
+    if(th) th.textContent = pad(h);
+    if(tm) tm.textContent = pad(m);
+    if(ts) ts.textContent = pad(s);
+  }
+  updateTimers();
+  setInterval(updateTimers, 1000);
+
+  // Terminal typing animation
+  const terminalLines = [
+    { html: '<span class="prompt">$</span><span class="out"> gerar-ideia --nicho "finanças pessoais"</span>' },
+    { html: '<span class="out ok">✓ Problema identificado: organizar gastos com salário mínimo</span>' },
+    { html: '<span class="prompt">$</span><span class="out"> criar-estrutura --capitulos 7</span>' },
+    { html: '<span class="out ok">✓ Estrutura pronta: introdução → 5 capítulos → conclusão</span>' },
+    { html: '<span class="prompt">$</span><span class="out"> gerar-capa --estilo profissional</span>' },
+    { html: '<span class="out ok">✓ Capa gerada em alta resolução</span>' },
+    { html: '<span class="prompt">$</span><span class="out"> publicar --produto ebook.pdf</span>' },
+    { html: '<span class="out price-line">✓ Produto no ar. Pronto para vender 24h por dia.</span>' },
+  ];
+
+  const terminalBody = document.getElementById('terminal-body');
+  let lineIndex = 0;
+
+  function typeNextLine(){
+    if(lineIndex >= terminalLines.length){
+      setTimeout(()=>{
+        terminalBody.innerHTML = '';
+        lineIndex = 0;
+        typeNextLine();
+      }, 2200);
+      return;
+    }
+    const div = document.createElement('div');
+    div.className = 'line';
+    div.style.animationDelay = '0s';
+    div.innerHTML = terminalLines[lineIndex].html;
+    terminalBody.appendChild(div);
+    lineIndex++;
+    const delay = terminalLines[lineIndex-1].html.includes('prompt') ? 650 : 500;
+    setTimeout(typeNextLine, delay);
+  }
+
+  // Add blinking cursor at the end persistently
+  const cursorEl = document.createElement('div');
+  cursorEl.className = 'line';
+  cursorEl.style.opacity = 1;
+  cursorEl.innerHTML = '<span class="cursor"></span>';
+
+  setTimeout(()=>{ typeNextLine(); }, 400);
+</script>
+
+</body>
+</html>
